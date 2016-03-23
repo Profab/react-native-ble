@@ -169,6 +169,7 @@ nobleBindings.stopScanning = function() {
 
 nobleBindings.init = function() {
   RNBLE.setup();
+  RNBLE.getState();
 };
 
 nobleBindings.connect = function(deviceUuid) {
