@@ -8,7 +8,6 @@
     CBCentralManager    *centralManager;
     dispatch_queue_t eventQueue;
     NSMutableDictionary *peripherals;
-    BOOL isScanning;
 }
 @end
 
@@ -36,7 +35,6 @@ RCT_EXPORT_METHOD(setup)
 
     centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:eventQueue options:@{}];
     peripherals = [NSMutableDictionary new];
-    isScanning = false;
 }
 
 RCT_EXPORT_METHOD(startScanning:(CBUUIDArray *)uuids allowDuplicates:(BOOL)allowDuplicates)
@@ -53,7 +51,6 @@ RCT_EXPORT_METHOD(startScanning:(CBUUIDArray *)uuids allowDuplicates:(BOOL)allow
 //    RCTLogInfo(@"startScanning %@ %@", uuids, scanOptions);
 
     [centralManager scanForPeripheralsWithServices:uuids options:scanOptions];
-    isScanning = true;
 }
 
 RCT_EXPORT_METHOD(stopScanning)
@@ -61,7 +58,6 @@ RCT_EXPORT_METHOD(stopScanning)
 //  RCTLogInfo(@"stopScanning");
 
     [centralManager stopScan];
-    isScanning = false;
 }
 
 RCT_EXPORT_METHOD(getState)
@@ -74,7 +70,6 @@ RCT_EXPORT_METHOD(getState)
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral
             advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI
 {
-    if (!isScanning) return;
 //    RCTLogInfo(@"didDiscoverPeripheral");
 
     
