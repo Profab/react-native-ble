@@ -133,8 +133,8 @@ NobleBindings.prototype.onDiscover = function(args, advertisementData, rssi) {
   this._peripherals[deviceUuid].rssi = rssi;
 
 
-  address = 'unknown';
-  addressType = 'unknown';
+  var address = 'unknown';
+  var addressType = 'unknown';
 
   this._peripherals[deviceUuid].address = address;
   this._peripherals[deviceUuid].addressType = addressType;
