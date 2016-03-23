@@ -51,6 +51,12 @@ Noble.prototype.onStateChange = function(state) {
   debug('stateChange ' + state);
 
   this.state = state;
+  
+  if (state !== 'poweredOn') {
+    Object.keys(this._peripherals).forEach((uuid) => {
+      this._peripherals[uuid].state = 'disconnected';
+    });
+  }
 
   this.emit('stateChange', state);
 };
