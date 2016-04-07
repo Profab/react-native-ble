@@ -132,7 +132,6 @@ NobleBindings.prototype.onDiscover = function(args, advertisementData, rssi) {
   this._peripherals[deviceUuid].advertisement = advertisement;
   this._peripherals[deviceUuid].rssi = rssi;
 
-
   var address = 'unknown';
   var addressType = 'unknown';
 
@@ -164,7 +163,6 @@ nobleBindings.startScanning = function(serviceUuids, allowDuplicates) {
   RNBLE.startScanning(serviceUuids, duplicates);
   this.emit('scanStart');
 };
-
 
 /**
  * Stop scanning
