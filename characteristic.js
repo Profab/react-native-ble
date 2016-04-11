@@ -49,12 +49,6 @@ Characteristic.prototype.read = function(callback) {
 };
 
 Characteristic.prototype.write = function(data, withoutResponse, callback) {
-  if (process.title !== 'browser') {
-    if (!(data instanceof Buffer)) {
-      throw new Error('data must be a Buffer');
-    }
-  }
-
   if (callback) {
     this.once('write', function() {
       callback(null);

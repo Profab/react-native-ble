@@ -55,12 +55,14 @@ NobleBindings.prototype.onCharacteristicsDiscover = function({ peripheralUuid, s
       uuid,
       // @TODO: Need to supply these eventually
       properties: [],
-    })),
+    }))
   );
 };
 
 NobleBindings.prototype.onData = function({ peripheralUuid, serviceUuid, characteristicUuid, data, isNotification }) {
-  this.emit('data', peripheralUuid, serviceUuid, characteristicUuid, new Buffer(data, 'base64'), isNotification);
+  var processedData = new Buffer(data, 'base64');
+  this.emit('data', peripheralUuid, serviceUuid, characteristicUuid, processedData, isNotification);
+  this.emit('read', peripheralUuid, serviceUuid, characteristicUuid, processedData, isNotification);
 };
 
 NobleBindings.prototype.onWrite = function({ peripheralUuid, serviceUuid, characteristicUuid }) {
