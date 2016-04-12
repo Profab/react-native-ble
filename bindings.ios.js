@@ -21,6 +21,7 @@ var NobleBindings = function() {
   DeviceEventEmitter.addListener('ble.discover', this.onDiscover.bind(this));
   DeviceEventEmitter.addListener('ble.rssiUpdate', this.onRssiUpdate.bind(this));
   DeviceEventEmitter.addListener('ble.servicesDiscover', this.onServicesDiscover.bind(this));
+  DeviceEventEmitter.addListener('ble.includedServicesDiscover', this.onIncludedServicesDiscover.bind(this));
   DeviceEventEmitter.addListener('ble.characteristicsDiscover', this.onCharacteristicsDiscover.bind(this));
   DeviceEventEmitter.addListener('ble.stateChange', this.onStateChange.bind(this));
   DeviceEventEmitter.addListener('ble.data', this.onData.bind(this));
@@ -44,6 +45,10 @@ NobleBindings.prototype.onRssiUpdate = function({ peripheralUuid, rssi }) {
 
 NobleBindings.prototype.onServicesDiscover = function({ peripheralUuid, serviceUuids }) {
   this.emit('servicesDiscover', peripheralUuid, serviceUuids);
+};
+
+NobleBindings.prototype.onIncludedServicesDiscover = function({ peripheralUuid, serviceUuid, includedServiceUuids }) {
+  this.emit('includedServicesDiscover', peripheralUuid, serviceUuid, includedServiceUuids);
 };
 
 NobleBindings.prototype.onCharacteristicsDiscover = function({ peripheralUuid, serviceUuid, characteristicUuids }) {
@@ -198,7 +203,7 @@ nobleBindings.discoverServices = function(deviceUuid, uuids) {
 };
 
 nobleBindings.discoverIncludedServices = function(deviceUuid, serviceUuid, serviceUuids) {
-  throw new Error('discoverIncludedServices not yet implemented');
+  RNBLE.discoverIncludedServices(deviceUuid, serviceUuid, serviceUuids);
 };
 
 nobleBindings.discoverCharacteristics = function(deviceUuid, serviceUuid, characteristicUuids) {
