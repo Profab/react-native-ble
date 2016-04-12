@@ -225,6 +225,7 @@ RCT_EXPORT_METHOD(discoverIncludedServices:(NSString *)peripheralUuid serviceUui
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverIncludedServicesForService:(CBService *)service error:(NSError *)error
 {
     if (error == nil) {
+        [peripherals setObject:peripheral forKey:peripheral.identifier.UUIDString];
         NSMutableArray *includedServiceUuids = [NSMutableArray new];
         for (CBService *includedService in service.includedServices) {
             [includedServiceUuids addObject:includedService];
@@ -253,6 +254,22 @@ RCT_EXPORT_METHOD(discoverCharacteristics:(NSString *)peripheralUuid serviceUuid
     }
 }
 
+RCT_EXPORT_METHOD(discoverDescriptors:(NSString *)peripheralUuid serviceUuid:(NSString *)serviceUuid characteristicUuid:(NSString *)characteristicUuid)
+{
+    //RCTLogInfo(@"discovering descriptors of characteristic %@", characteristicUuid);
+    CBPeripheral *peripheral = peripherals[peripheralUuid];
+    if (peripheral) {
+        CBCharacteristic *targetCharacteristic = [self getTargetCharacteristic:peripheral serviceUuid:serviceUuid characteristicUuid:characteristicUuid];
+        if (targetCharacteristic) {
+            [peripheral discoverDescriptorsForCharacteristic:targetCharacteristic];
+        } else {
+            NSLog(@"Could not find characteristic for UUID: %@", characteristicUuid);
+        }
+    } else {
+        NSLog(@"Could not find peripheral for UUID: %@", peripheralUuid);
+    }
+}
+
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error
 {
     if (error == nil) {
@@ -267,6 +284,23 @@ RCT_EXPORT_METHOD(discoverCharacteristics:(NSString *)peripheralUuid serviceUuid
                                                                                         @"serviceUuid": service.UUID.UUIDString,
                                                                                         @"characteristicUuids": characteristics
                                                                                         }];
+    }
+}
+
+- (void)peripheral:(CBPeripheral *)peripheral didDiscoverDescriptorsForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error
+{
+    if (error == nil) {
+        [peripherals setObject:peripheral forKey:peripheral.identifier.UUIDString];
+        NSMutableArray *descriptors = [NSMutableArray new];
+        for (CBDescriptor *descriptor in characteristic.descriptors) {
+            [descriptors addObject:descriptor.UUID.UUIDString];
+        }
+        [self.bridge.eventDispatcher sendDeviceEventWithName:@"ble.descriptorsDiscover" body:@{
+                                                                                                   @"peripheralUuid": peripheral.identifier.UUIDString,
+                                                                                                   @"serviceUuid": characteristic.service.UUID.UUIDString,
+                                                                                                   @"characteristicUuid": characteristic.UUID.UUIDString,
+                                                                                                   @"descriptors": descriptors
+                                                                                                   }];
     }
 }
 

@@ -23,6 +23,7 @@ var NobleBindings = function() {
   DeviceEventEmitter.addListener('ble.servicesDiscover', this.onServicesDiscover.bind(this));
   DeviceEventEmitter.addListener('ble.includedServicesDiscover', this.onIncludedServicesDiscover.bind(this));
   DeviceEventEmitter.addListener('ble.characteristicsDiscover', this.onCharacteristicsDiscover.bind(this));
+  DeviceEventEmitter.addListener('ble.descriptorsDiscover', this.onDescriptorsDiscover.bind(this));
   DeviceEventEmitter.addListener('ble.stateChange', this.onStateChange.bind(this));
   DeviceEventEmitter.addListener('ble.data', this.onData.bind(this));
   DeviceEventEmitter.addListener('ble.write', this.onWrite.bind(this));
@@ -62,6 +63,10 @@ NobleBindings.prototype.onCharacteristicsDiscover = function({ peripheralUuid, s
       properties: [],
     }))
   );
+};
+
+NobleBindings.prototype.onDescriptorsDiscover = function({ peripheralUuid, serviceUuid, characteristicUuid, descriptors }) {
+  this.emit('descriptorsDiscover', peripheralUuid, serviceUuid, characteristicUuid, descriptors);
 };
 
 NobleBindings.prototype.onData = function({ peripheralUuid, serviceUuid, characteristicUuid, data, isNotification }) {
@@ -227,7 +232,7 @@ nobleBindings.notify = function(deviceUuid, serviceUuid, characteristicUuid, not
 };
 
 nobleBindings.discoverDescriptors = function(deviceUuid, serviceUuid, characteristicUuid) {
-  throw new Error('discoverDescriptors not yet implemented');
+  RNBLE.discoverDescriptors(deviceUuid, serviceUuid, characteristicUuid);
 };
 
 nobleBindings.readValue = function(deviceUuid, serviceUuid, characteristicUuid, descriptorUuid) {
