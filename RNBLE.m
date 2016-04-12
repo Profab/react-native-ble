@@ -252,12 +252,58 @@ RCT_EXPORT_METHOD(discoverDescriptors:(NSString *)peripheralUuid serviceUuid:(NS
     if (error == nil) {
         NSMutableArray *characteristics = [NSMutableArray new];
         for (CBCharacteristic *characteristic in service.characteristics) {
-            [characteristics addObject:characteristic.UUID.UUIDString];
+            NSDictionary *characteristicObject = [NSMutableDictionary new];
+            [characteristicObject setValue:characteristic.UUID.UUIDString forKey:@"uuid"];
+            
+            NSMutableArray *properties = [NSMutableArray new];
+            
+            if (characteristic.properties & CBCharacteristicPropertyBroadcast) {
+                [properties addObject:@"broadcast"];
+            }
+            
+            if (characteristic.properties & CBCharacteristicPropertyRead) {
+                [properties addObject:@"read"];
+            }
+            
+            if (characteristic.properties & CBCharacteristicPropertyWriteWithoutResponse) {
+                [properties addObject:@"writeWithoutResponse"];
+            }
+            
+            if (characteristic.properties & CBCharacteristicPropertyWrite) {
+                [properties addObject:@"write"];
+            }
+            
+            if (characteristic.properties & CBCharacteristicPropertyNotify) {
+                [properties addObject:@"notify"];
+            }
+            
+            if (characteristic.properties & CBCharacteristicPropertyIndicate) {
+                [properties addObject:@"indicate"];
+            }
+            
+            if (characteristic.properties & CBCharacteristicPropertyAuthenticatedSignedWrites) {
+                [properties addObject:@"authenticatedSignedWrites"];
+            }
+            
+            if (characteristic.properties & CBCharacteristicPropertyExtendedProperties) {
+                [properties addObject:@"extendedProperties"];
+            }
+            
+            if (characteristic.properties & CBCharacteristicPropertyNotifyEncryptionRequired) {
+                [properties addObject:@"notifyEncryptionRequired"];
+            }
+            
+            if (characteristic.properties & CBCharacteristicPropertyIndicateEncryptionRequired) {
+                [properties addObject:@"indicateEncryptionRequired"];
+            }
+            
+            [characteristics addObject:characteristicObject];
         }
+        
         [self.bridge.eventDispatcher sendDeviceEventWithName:@"ble.characteristicsDiscover" body:@{
                                                                                         @"peripheralUuid": peripheral.identifier.UUIDString,
                                                                                         @"serviceUuid": service.UUID.UUIDString,
-                                                                                        @"characteristicUuids": characteristics
+                                                                                        @"characteristics": characteristics
                                                                                         }];
     }
 }

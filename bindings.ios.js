@@ -52,16 +52,12 @@ NobleBindings.prototype.onIncludedServicesDiscover = function({ peripheralUuid, 
   this.emit('includedServicesDiscover', peripheralUuid, serviceUuid, includedServiceUuids);
 };
 
-NobleBindings.prototype.onCharacteristicsDiscover = function({ peripheralUuid, serviceUuid, characteristicUuids }) {
+NobleBindings.prototype.onCharacteristicsDiscover = function({ peripheralUuid, serviceUuid, characteristics }) {
   this.emit(
     'characteristicsDiscover', 
     peripheralUuid, 
     serviceUuid, 
-    characteristicUuids.map((uuid) => ({
-      uuid,
-      // @TODO: Need to supply these eventually
-      properties: [],
-    }))
+    characteristics
   );
 };
 
