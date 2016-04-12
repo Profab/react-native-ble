@@ -40,8 +40,6 @@ RCT_EXPORT_METHOD(setup)
 
 RCT_EXPORT_METHOD(startScanning:(CBUUIDArray *)uuids allowDuplicates:(BOOL)allowDuplicates)
 {
-//  RCTLogInfo(@"startScanning %@ %d", uuids, allowDuplicates);
-
     NSMutableDictionary *scanOptions = [NSMutableDictionary dictionaryWithObject:@NO
                                                           forKey:CBCentralManagerScanOptionAllowDuplicatesKey];
 
@@ -49,32 +47,22 @@ RCT_EXPORT_METHOD(startScanning:(CBUUIDArray *)uuids allowDuplicates:(BOOL)allow
         [scanOptions setObject:@YES forKey:CBCentralManagerScanOptionAllowDuplicatesKey];
     }
 
-//    RCTLogInfo(@"startScanning %@ %@", uuids, scanOptions);
-
     [centralManager scanForPeripheralsWithServices:uuids options:scanOptions];
 }
 
 RCT_EXPORT_METHOD(stopScanning)
 {
-//  RCTLogInfo(@"stopScanning");
-
     [centralManager stopScan];
 }
 
 RCT_EXPORT_METHOD(getState)
 {
-   // RCTLogInfo(@"getState");
-    
     [self.bridge.eventDispatcher sendDeviceEventWithName:@"ble.stateChange" body:[self NSStringForCBCentralManagerState:[centralManager state]]];
 }
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral
             advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI
 {
-//    RCTLogInfo(@"didDiscoverPeripheral");
-
-    
-//, @"state" : [self nameForCBPeripheralState:peripheral.state]
     [peripherals setObject:peripheral forKey:peripheral.identifier.UUIDString];
     NSDictionary *advertisementDictionary = [self dictionaryForAdvertisementData:advertisementData fromPeripheral:peripheral];
     
@@ -91,7 +79,6 @@ RCT_EXPORT_METHOD(getState)
 
 RCT_EXPORT_METHOD(connect:(NSString *)peripheralUuid)
 {
-    //RCTLogInfo(@"connect");
     CBPeripheral *peripheral = peripherals[peripheralUuid];
     
     if (peripheral) {
@@ -103,7 +90,6 @@ RCT_EXPORT_METHOD(connect:(NSString *)peripheralUuid)
 
 RCT_EXPORT_METHOD(disconnect:(NSString *)peripheralUuid)
 {
-    //RCTLogInfo(@"disconnect");
     CBPeripheral *peripheral = peripherals[peripheralUuid];
     
     if (peripheral) {
@@ -140,7 +126,6 @@ RCT_EXPORT_METHOD(disconnect:(NSString *)peripheralUuid)
 
 RCT_EXPORT_METHOD(updateRssi:(NSString *)peripheralUuid)
 {
-    //RCTLogInfo(@"discover services");
     CBPeripheral *peripheral = peripherals[peripheralUuid];
     
     if (peripheral) {
@@ -178,7 +163,6 @@ RCT_EXPORT_METHOD(updateRssi:(NSString *)peripheralUuid)
 
 RCT_EXPORT_METHOD(discoverServices:(NSString *)peripheralUuid serviceUuids:(CBUUIDArray *)serviceUuids)
 {
-    //RCTLogInfo(@"discover services");
     CBPeripheral *peripheral = peripherals[peripheralUuid];
     
     if (peripheral) {
@@ -207,10 +191,8 @@ RCT_EXPORT_METHOD(discoverIncludedServices:(NSString *)peripheralUuid serviceUui
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error
 {
     if (error == nil) {
-        //RCTLogInfo(@"discovered services");
         NSMutableArray *serviceUuids = [NSMutableArray new];
         for (CBService *service in peripheral.services) {
-            //RCTLogInfo(@"saved service uuid: %@", service.UUID.UUIDString);
             [serviceUuids addObject:service.UUID.UUIDString];
         }
         [self.bridge.eventDispatcher sendDeviceEventWithName:@"ble.servicesDiscover" body:@{
@@ -237,7 +219,6 @@ RCT_EXPORT_METHOD(discoverIncludedServices:(NSString *)peripheralUuid serviceUui
 
 RCT_EXPORT_METHOD(discoverCharacteristics:(NSString *)peripheralUuid serviceUuid:(NSString *)serviceUuid)
 {
-    //RCTLogInfo(@"discovering characteristics for %@", serviceUuid);
     CBPeripheral *peripheral = peripherals[peripheralUuid];
     if (peripheral) {
         CBService *targetService = [self getTargetService:peripheral serviceUuid:serviceUuid];
@@ -253,7 +234,6 @@ RCT_EXPORT_METHOD(discoverCharacteristics:(NSString *)peripheralUuid serviceUuid
 
 RCT_EXPORT_METHOD(discoverDescriptors:(NSString *)peripheralUuid serviceUuid:(NSString *)serviceUuid characteristicUuid:(NSString *)characteristicUuid)
 {
-    //RCTLogInfo(@"discovering descriptors of characteristic %@", characteristicUuid);
     CBPeripheral *peripheral = peripherals[peripheralUuid];
     if (peripheral) {
         CBCharacteristic *targetCharacteristic = [self getTargetCharacteristic:peripheral serviceUuid:serviceUuid characteristicUuid:characteristicUuid];
@@ -270,7 +250,6 @@ RCT_EXPORT_METHOD(discoverDescriptors:(NSString *)peripheralUuid serviceUuid:(NS
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error
 {
     if (error == nil) {
-        //RCTLogInfo(@"discovered characteristics");
         NSMutableArray *characteristics = [NSMutableArray new];
         for (CBCharacteristic *characteristic in service.characteristics) {
             [characteristics addObject:characteristic.UUID.UUIDString];
@@ -301,7 +280,6 @@ RCT_EXPORT_METHOD(discoverDescriptors:(NSString *)peripheralUuid serviceUuid:(NS
 
 RCT_EXPORT_METHOD(read:(NSString *)peripheralUuid serviceUuid:(NSString *)serviceUuid characteristicUuid:(NSString *)characteristicUuid)
 {
-    //RCTLogInfo(@"Notifying!");
     CBPeripheral *peripheral = peripherals[peripheralUuid];
     if (peripheral) {
         CBCharacteristic *targetCharacteristic = [self getTargetCharacteristic:peripheral serviceUuid:serviceUuid characteristicUuid:characteristicUuid];
@@ -320,6 +298,7 @@ RCT_EXPORT_METHOD(write:(NSString *)peripheralUuid serviceUuid:(NSString *)servi
     NSData *writeValue;
     NSString *dataType = [data objectForKey:@"type"];
     
+    // @TODO: add more data types
     if ([dataType isEqualToString:@"uint8"]) {
         uint8_t num = [[data objectForKey:@"value"] intValue];
         writeValue = [NSData dataWithBytes:(void *)&num length:sizeof(num)];
@@ -342,7 +321,6 @@ RCT_EXPORT_METHOD(write:(NSString *)peripheralUuid serviceUuid:(NSString *)servi
 
 RCT_EXPORT_METHOD(notify:(NSString *)peripheralUuid serviceUuid:(NSString *)serviceUuid characteristicUuid:(NSString *)characteristicUuid notify:(BOOL)notify)
 {
-    //RCTLogInfo(@"Notifying!");
     CBPeripheral *peripheral = peripherals[peripheralUuid];
     if (peripheral) {
         CBCharacteristic *targetCharacteristic = [self getTargetCharacteristic:peripheral serviceUuid:serviceUuid characteristicUuid:characteristicUuid];
@@ -386,7 +364,6 @@ RCT_EXPORT_METHOD(notify:(NSString *)peripheralUuid serviceUuid:(NSString *)serv
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateNotificationStateForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error
 {
     if (error == nil) {
-        //NSLog(@"Changed notification state");
         [self.bridge.eventDispatcher sendDeviceEventWithName:@"ble.notify" body:@{
                                                                               @"peripheralUuid": peripheral.identifier.UUIDString,
                                                                               @"serviceUuid": characteristic.service.UUID.UUIDString,
@@ -399,7 +376,6 @@ RCT_EXPORT_METHOD(notify:(NSString *)peripheralUuid serviceUuid:(NSString *)serv
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error
 {
     if (error == nil) {
-        //RCTLogInfo(@"Got some data!");
         [self.bridge.eventDispatcher sendDeviceEventWithName:@"ble.data" body:@{
                                                                             @"peripheralUuid": peripheral.identifier.UUIDString,
                                                                             @"serviceUuid": characteristic.service.UUID.UUIDString,
@@ -413,7 +389,6 @@ RCT_EXPORT_METHOD(notify:(NSString *)peripheralUuid serviceUuid:(NSString *)serv
 - (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error
 {
     if (error == nil) {
-        //NSLog(@"Wrote char %@", characteristic.UUID.UUIDString);
         [self.bridge.eventDispatcher sendDeviceEventWithName:@"ble.write" body:@{
                                                                              @"peripheralUuid": peripheral.identifier.UUIDString,
                                                                              @"serviceUuid": characteristic.service.UUID.UUIDString,
@@ -433,8 +408,6 @@ RCT_EXPORT_METHOD(notify:(NSString *)peripheralUuid serviceUuid:(NSString *)serv
 
 - (NSDictionary *)dictionaryForAdvertisementData:(NSDictionary *)advertisementData fromPeripheral:(CBPeripheral *)peripheral
 {
-//  RCTLogInfo(@"dictionaryForAdvertisementData %@ %@", advertisementData, peripheral);
- 
     NSString *localNameString = [advertisementData objectForKey:@"kCBAdvDataLocalName"];
     localNameString = localNameString ? localNameString : @"";
 
@@ -450,11 +423,8 @@ RCT_EXPORT_METHOD(notify:(NSString *)peripheralUuid serviceUuid:(NSString *)serv
         NSString *uuidString = cbuuid.UUIDString;
         NSData *serviceData =  [serviceDataDictionary objectForKey:cbuuid];
         NSString *serviceDataString = [serviceData base64EncodedStringWithOptions:0];
-        
-//        RCTLogInfo(@"stringServiceDataDictionary %@ %@", serviceDataString, uuidString);
         [stringServiceDataDictionary setObject:serviceDataString forKey:uuidString];
     }
-//    RCTLogInfo(@"stringServiceDataDictionary %@", stringServiceDataDictionary);
 
     NSMutableArray *serviceUUIDsStringArray = [NSMutableArray new];
     for (CBUUID *cbuuid in [advertisementData objectForKey:@"kCBAdvDataServiceUUIDs"])
