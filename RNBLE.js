@@ -6,6 +6,7 @@ var util = require('util');
 var Peripheral = require('./peripheral');
 var Service = require('./service');
 var Characteristic = require('./characteristic');
+var Descriptor = require('./descriptor');
 
 var bindings = require('./bindings');
 
