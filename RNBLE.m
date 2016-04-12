@@ -228,7 +228,7 @@ RCT_EXPORT_METHOD(discoverIncludedServices:(NSString *)peripheralUuid serviceUui
         [peripherals setObject:peripheral forKey:peripheral.identifier.UUIDString];
         NSMutableArray *includedServiceUuids = [NSMutableArray new];
         for (CBService *includedService in service.includedServices) {
-            [includedServiceUuids addObject:includedService];
+            [includedServiceUuids addObject:includedService.UUID.UUIDString];
         }
         [self.bridge.eventDispatcher sendDeviceEventWithName:@"ble.includedServicesDiscover" body:@{
                                                                                             @"peripheralUuid": peripheral.identifier.UUIDString,
