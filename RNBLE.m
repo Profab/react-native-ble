@@ -3,6 +3,7 @@
 #import "RCTLog.h"
 #import "RCTConvert.h"
 #import "RCTCONVERT+CBUUID.h"
+#import "RCTUtils.h"
 
 @interface RNBLE () <CBCentralManagerDelegate, CBPeripheralDelegate> {
     CBCentralManager *centralManager;
@@ -122,10 +123,20 @@ RCT_EXPORT_METHOD(disconnect:(NSString *)peripheralUuid)
 
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 {
-    if (error == nil) {
-        [self.bridge.eventDispatcher sendDeviceEventWithName:@"ble.disconnect" body:@{
-                                                                               @"peripheralUuid": peripheral.identifier.UUIDString}];
+    NSMutableDictionary *eventData = [NSMutableDictionary new];
+    [eventData setObject:peripheral.identifier.UUIDString forKey:@"peripheralUuid"];
+    if (error != nil) {
+        [eventData setObject:RCTJSErrorFromNSError(error) forKey:@"error"];
     }
+    [self.bridge.eventDispatcher sendDeviceEventWithName:@"ble.disconnect" body:eventData];
+}
+
+- (void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
+{
+    [self.bridge.eventDispatcher sendDeviceEventWithName:@"ble.connect" body:@{
+                                                                               @"peripheralUuid": peripheral.identifier.UUIDString,
+                                                                               @"error": RCTJSErrorFromNSError(error)
+                                                                               }];
 }
 
 RCT_EXPORT_METHOD(updateRssi:(NSString *)peripheralUuid)

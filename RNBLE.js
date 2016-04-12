@@ -149,12 +149,12 @@ Noble.prototype.disconnect = function(peripheralUuid) {
   this._bindings.disconnect(peripheralUuid);
 };
 
-Noble.prototype.onDisconnect = function(peripheralUuid) {
+Noble.prototype.onDisconnect = function(peripheralUuid, error) {
   var peripheral = this._peripherals[peripheralUuid];
 
   if (peripheral) {
     peripheral.state = 'disconnected';
-    peripheral.emit('disconnect');
+    peripheral.emit('disconnect', error);
   } else {
     this.emit('warning', 'unknown peripheral ' + peripheralUuid + ' disconnected!');
   }

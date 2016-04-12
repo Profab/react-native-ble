@@ -30,12 +30,12 @@ var NobleBindings = function() {
 
 util.inherits(NobleBindings, events.EventEmitter);
 
-NobleBindings.prototype.onConnect = function({ peripheralUuid }) {
-  this.emit('connect', peripheralUuid);
+NobleBindings.prototype.onConnect = function({ peripheralUuid, error = null }) {
+  this.emit('connect', peripheralUuid, error);
 };
 
-NobleBindings.prototype.onDisconnect = function({ peripheralUuid }) {
-  this.emit('disconnect', peripheralUuid);
+NobleBindings.prototype.onDisconnect = function({ peripheralUuid, error = null }) {
+  this.emit('disconnect', peripheralUuid, error);
 };
 
 NobleBindings.prototype.onRssiUpdate = function({ peripheralUuid, rssi }) {
