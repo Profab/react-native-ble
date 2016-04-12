@@ -74,7 +74,7 @@ RCT_EXPORT_METHOD(getState)
 //    RCTLogInfo(@"didDiscoverPeripheral");
 
     
-//, @"state" : [self nameForCBPeripheralState:peripheral.state]        [peripherals setObject:peripheral forKey:peripheral.identifier.UUIDString];
+//, @"state" : [self nameForCBPeripheralState:peripheral.state]
     [peripherals setObject:peripheral forKey:peripheral.identifier.UUIDString];
     NSDictionary *advertisementDictionary = [self dictionaryForAdvertisementData:advertisementData fromPeripheral:peripheral];
     
@@ -116,7 +116,6 @@ RCT_EXPORT_METHOD(disconnect:(NSString *)peripheralUuid)
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
 {
     peripheral.delegate = self;
-    [peripherals setObject:peripheral forKey:peripheral.identifier.UUIDString];
     [self.bridge.eventDispatcher sendDeviceEventWithName:@"ble.connect" body:@{
                                                                                @"peripheralUuid": peripheral.identifier.UUIDString}];
 }
@@ -209,7 +208,6 @@ RCT_EXPORT_METHOD(discoverIncludedServices:(NSString *)peripheralUuid serviceUui
 {
     if (error == nil) {
         //RCTLogInfo(@"discovered services");
-        [peripherals setObject:peripheral forKey:peripheral.identifier.UUIDString];
         NSMutableArray *serviceUuids = [NSMutableArray new];
         for (CBService *service in peripheral.services) {
             //RCTLogInfo(@"saved service uuid: %@", service.UUID.UUIDString);
@@ -225,7 +223,6 @@ RCT_EXPORT_METHOD(discoverIncludedServices:(NSString *)peripheralUuid serviceUui
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverIncludedServicesForService:(CBService *)service error:(NSError *)error
 {
     if (error == nil) {
-        [peripherals setObject:peripheral forKey:peripheral.identifier.UUIDString];
         NSMutableArray *includedServiceUuids = [NSMutableArray new];
         for (CBService *includedService in service.includedServices) {
             [includedServiceUuids addObject:includedService.UUID.UUIDString];
@@ -274,7 +271,6 @@ RCT_EXPORT_METHOD(discoverDescriptors:(NSString *)peripheralUuid serviceUuid:(NS
 {
     if (error == nil) {
         //RCTLogInfo(@"discovered characteristics");
-        [peripherals setObject:peripheral forKey:peripheral.identifier.UUIDString];
         NSMutableArray *characteristics = [NSMutableArray new];
         for (CBCharacteristic *characteristic in service.characteristics) {
             [characteristics addObject:characteristic.UUID.UUIDString];
@@ -290,7 +286,6 @@ RCT_EXPORT_METHOD(discoverDescriptors:(NSString *)peripheralUuid serviceUuid:(NS
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverDescriptorsForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error
 {
     if (error == nil) {
-        [peripherals setObject:peripheral forKey:peripheral.identifier.UUIDString];
         NSMutableArray *descriptors = [NSMutableArray new];
         for (CBDescriptor *descriptor in characteristic.descriptors) {
             [descriptors addObject:descriptor.UUID.UUIDString];
