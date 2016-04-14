@@ -297,6 +297,7 @@ RCT_EXPORT_METHOD(discoverDescriptors:(NSString *)peripheralUuid serviceUuid:(NS
                 [properties addObject:@"indicateEncryptionRequired"];
             }
             
+            [characteristicObject setValue:properties forKey:@"properties"];
             [characteristics addObject:characteristicObject];
         }
         
