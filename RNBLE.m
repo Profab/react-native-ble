@@ -45,17 +45,17 @@ RCT_EXPORT_METHOD(setup)
 
 RCT_EXPORT_METHOD(startAdvertising:(NSDictionary *)advertisementData)
 {
-    NSDictionary *data = [NSDictionary new];
+    NSMutableDictionary *data = [NSMutableDictionary new];
     
     if (advertisementData[@"localName"] != nil) {
-        [data setValue:advertisementData[@"localName"] forKey:CBAdvertisementDataLocalNameKey];
+        [data setObject:advertisementData[@"localName"] forKey:CBAdvertisementDataLocalNameKey];
     }
     if (advertisementData[@"serviceUuids"] != nil && [advertisementData[@"serviceUuids"] isKindOfClass:[NSArray class]]) {
         NSMutableArray *serviceUuids = [NSMutableArray new];
         for (NSString *uuid in advertisementData[@"serviceUuids"]) {
             [serviceUuids addObject:[CBUUID UUIDWithString:uuid]];
         }
-        [data setValue:serviceUuids forKey:CBAdvertisementDataServiceUUIDsKey];
+        [data setObject:serviceUuids forKey:CBAdvertisementDataServiceUUIDsKey];
     }
     
     [peripheralManager startAdvertising:data];
