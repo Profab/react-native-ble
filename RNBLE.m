@@ -98,15 +98,12 @@ RCT_EXPORT_METHOD(getState)
 {
     [peripherals setObject:peripheral forKey:peripheral.identifier.UUIDString];
     NSDictionary *advertisementDictionary = [self dictionaryForAdvertisementData:advertisementData fromPeripheral:peripheral];
-    
-    NSDictionary *event = @{
-                            @"kCBMsgArgDeviceUUID": peripheral.identifier.UUIDString,
-                            @"kCBMsgArgAdvertisementData": advertisementDictionary,
-                            @"kCBMsgArgName": peripheral.name ? peripheral.name : @"",
-                            @"kCBMsgArgRssi": RSSI
-                            };
-
-    [self.bridge.eventDispatcher sendDeviceEventWithName:@"ble.discover" body:event];
+    [self.bridge.eventDispatcher sendDeviceEventWithName:@"ble.discover" body:@{
+                                                                                @"peripheralUuid": peripheral.identifier.UUIDString,
+                                                                                @"advertisement": advertisementDictionary,
+                                                                                @"connectable": @([advertisementData[CBAdvertisementDataIsConnectable] boolValue]),
+                                                                                @"rssi": RSSI
+                                                                                }];
 }
 
 
@@ -477,51 +474,54 @@ RCT_EXPORT_METHOD(notify:(NSString *)peripheralUuid serviceUuid:(NSString *)serv
     }
 }
 
-- (NSDictionary *)dictionaryForPeripheral:(CBPeripheral *)peripheral
-{
-    return @{
-        @"identifier": peripheral.identifier.UUIDString,
-        @"name" : peripheral.name ? peripheral.name : @"",
-        @"state" : [self nameForCBPeripheralState:peripheral.state]
-    };
-}
-
 - (NSDictionary *)dictionaryForAdvertisementData:(NSDictionary *)advertisementData fromPeripheral:(CBPeripheral *)peripheral
 {
-    NSString *localNameString = [advertisementData objectForKey:@"kCBAdvDataLocalName"];
-    localNameString = localNameString ? localNameString : @"";
-
-    NSData *manufacturerData = [advertisementData objectForKey:@"kCBAdvDataManufacturerData"];
-    NSString *manufacturerDataString = [manufacturerData base64EncodedStringWithOptions:0];
-    manufacturerDataString = manufacturerDataString ? manufacturerDataString : @"";
-
-    NSDictionary *serviceDataDictionary = [advertisementData objectForKey:@"kCBAdvDataServiceData"];
-    NSMutableDictionary *stringServiceDataDictionary = [NSMutableDictionary new];
+    NSMutableDictionary *advertisement = [NSMutableDictionary new];
     
-    for (CBUUID *cbuuid in serviceDataDictionary)
-    {
-        NSString *uuidString = cbuuid.UUIDString;
-        NSData *serviceData =  [serviceDataDictionary objectForKey:cbuuid];
-        NSString *serviceDataString = [serviceData base64EncodedStringWithOptions:0];
-        [stringServiceDataDictionary setObject:serviceDataString forKey:uuidString];
-    }
-
-    NSMutableArray *serviceUUIDsStringArray = [NSMutableArray new];
-    for (CBUUID *cbuuid in [advertisementData objectForKey:@"kCBAdvDataServiceUUIDs"])
-    {
-        [serviceUUIDsStringArray addObject:cbuuid.UUIDString];
+    if (advertisementData[CBAdvertisementDataLocalNameKey] != nil) {
+        advertisement[@"localName"] = advertisementData[CBAdvertisementDataLocalNameKey];
     }
     
-    NSDictionary *advertisementDataDictionary = @{ @"identifier" : @"",
-                            @"kCBAdvDataIsConnectable" : [advertisementData objectForKey:@"kCBAdvDataIsConnectable"],
-                            @"kCBAdvDataLocalName" : localNameString,
-                            @"kCBAdvDataManufacturerData" : manufacturerDataString,
-                            @"kCBAdvDataServiceData" : stringServiceDataDictionary,
-                            @"kCBAdvDataServiceUUIDs" : serviceUUIDsStringArray,
-                            @"kCBAdvDataTxPowerLevel" : [advertisementData objectForKey:@"kCBAdvDataTxPowerLevel"] ? [advertisementData objectForKey:@"kCBAdvDataTxPowerLevel"] : @""
-                            };
+    if (advertisementData[CBAdvertisementDataManufacturerDataKey] != nil) {
+        advertisement[@"manufacturerData"] = [advertisementData[CBAdvertisementDataManufacturerDataKey] base64EncodedStringWithOptions:0];
+    }
     
-    return advertisementDataDictionary;
+    if (advertisementData[CBAdvertisementDataServiceDataKey] != nil) {
+        advertisement[@"serviceData"] = [NSMutableArray new];
+        for (CBUUID *uuid in advertisementData[CBAdvertisementDataServiceDataKey]) {
+            [advertisement[@"serviceData"] addObject:@{
+                                                       @"uuid": uuid.UUIDString,
+                                                       @"data": [advertisementData[CBAdvertisementDataServiceDataKey][uuid] base64EncodedStringWithOptions:0]
+                                                       }];
+        }
+    }
+    
+    if (advertisementData[CBAdvertisementDataServiceUUIDsKey] != nil) {
+        advertisement[@"serviceUuids"] = [NSMutableArray new];
+        for (CBUUID *uuid in advertisementData[CBAdvertisementDataServiceUUIDsKey]) {
+            [advertisement[@"serviceUuids"] addObject:uuid.UUIDString];
+        }
+    }
+
+    if (advertisementData[CBAdvertisementDataOverflowServiceUUIDsKey] != nil) {
+        advertisement[@"overflowServiceUuids"] = [NSMutableArray new];
+        for (CBUUID *uuid in advertisementData[CBAdvertisementDataOverflowServiceUUIDsKey]) {
+            [advertisement[@"overflowServiceUuids"] addObject:uuid.UUIDString];
+        }
+    }
+    
+    if (advertisementData[CBAdvertisementDataTxPowerLevelKey] != nil) {
+        advertisement[@"txPowerLevel"] = advertisementData[CBAdvertisementDataTxPowerLevelKey];
+    }
+    
+    if (advertisementData[CBAdvertisementDataSolicitedServiceUUIDsKey] != nil) {
+        advertisement[@"solicitedServiceUuids"] = [NSMutableArray new];
+        for (CBUUID *uuid in advertisementData[CBAdvertisementDataSolicitedServiceUUIDsKey]) {
+            [advertisement[@"solicitedServiceUuids"] addObject:uuid.UUIDString];
+        }
+    }
+    
+    return advertisement;
 }
 
 

@@ -14,8 +14,6 @@ var Buffer = require('buffer').Buffer;
  *  NobleBindings for react native
  */
 var NobleBindings = function() {
-  this._peripherals = {};
-
   DeviceEventEmitter.addListener('ble.connect', this.onConnect.bind(this));
   DeviceEventEmitter.addListener('ble.disconnect', this.onDisconnect.bind(this));
   DeviceEventEmitter.addListener('ble.discover', this.onDiscover.bind(this));
@@ -79,74 +77,27 @@ NobleBindings.prototype.onNotify = function({ peripheralUuid, serviceUuid, chara
   this.emit('notify', peripheralUuid, serviceUuid, characteristicUuid, state);
 };
 
-NobleBindings.prototype.onDiscover = function(args, advertisementData, rssi) {
-  if (Object.keys(args.kCBMsgArgAdvertisementData).length === 0) {
-    return;
-  }
-
-  var serviceDataBuffer = new Buffer(args.kCBMsgArgAdvertisementData.kCBAdvDataServiceData, 'base64');
-
-  var manufacturerDataBuffer = new Buffer(args.kCBMsgArgAdvertisementData.kCBAdvDataManufacturerData, 'base64');
-  if (manufacturerDataBuffer.length===0) {
-    manufacturerDataBuffer = undefined;
-  }
-
-  var txPowerLevel = args.kCBMsgArgAdvertisementData.kCBAdvDataTxPowerLevel;
-  if (txPowerLevel === '') {
-    txPowerLevel = undefined;
-  }
-
-  // todo need to lower case and remove dashes
-  var serviceUuids = args.kCBMsgArgAdvertisementData.kCBAdvDataServiceUUIDs;
-
-  // todo need to remove dashes and lowercase?
-  var deviceUuid = args.kCBMsgArgDeviceUUID;
-
-  var localName = args.kCBMsgArgAdvertisementData.kCBAdvDataLocalName || args.kCBMsgArgName
-  if (localName === '') {
-    localName = undefined;
-  }
-
-  var advertisement = {
-    localName: localName,
-    txPowerLevel: txPowerLevel,
-    manufacturerData: manufacturerDataBuffer,
-    serviceData: [],
-    serviceUuids: serviceUuids
-  };
-  var connectable = args.kCBMsgArgAdvertisementData.kCBAdvDataIsConnectable ? true : false;
-  var rssi = args.kCBMsgArgRssi;
-
-  var serviceData = args.kCBMsgArgAdvertisementData.kCBAdvDataServiceData;
-  for (var prop in serviceData) {
-    var propData = new Buffer(serviceData[prop], 'base64');
-    advertisement.serviceData.push({
-      uuid: prop.toLowerCase(),
-      data: propData
-    });
-  }
-
+NobleBindings.prototype.onDiscover = function({ peripheralUuid, advertisement, connectable, rssi }) {
   debug('peripheral ' + deviceUuid + ' discovered');
 
-  var uuid = new Buffer(deviceUuid, 'hex');
-  uuid.isUuid = true;
-
-  if (!this._peripherals[deviceUuid]) {
-    this._peripherals[deviceUuid] = {};
+  if (advertisement.manufacturerData) {
+    advertisement.manufacturerData = new Buffer(advertisement.manufacturerData, 'base64');
   }
 
-  this._peripherals[deviceUuid].uuid = uuid;
-  this._peripherals[deviceUuid].connectable = connectable;
-  this._peripherals[deviceUuid].advertisement = advertisement;
-  this._peripherals[deviceUuid].rssi = rssi;
+  if (advertisement.serviceData) {
+    advertisement.serviceData = advertisement.serviceData.map(({ uuid, data }) => ({
+      uuid,
+      data: new Buffer(data, 'base64'),
+    }));
+  }
 
+  // We don't know these values because iOS doesn't want to give us 
+  // this information. Only random UUIDs are generated from them 
+  // under the hood
   var address = 'unknown';
   var addressType = 'unknown';
 
-  this._peripherals[deviceUuid].address = address;
-  this._peripherals[deviceUuid].addressType = addressType;
-
-  this.emit('discover', deviceUuid, address, addressType, connectable, advertisement, rssi);
+  this.emit('discover', peripheralUuid, address, addressType, connectable, advertisement, rssi);
 };
 
 NobleBindings.prototype.onStateChange = function(state) {
