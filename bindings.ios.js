@@ -78,7 +78,7 @@ NobleBindings.prototype.onNotify = function({ peripheralUuid, serviceUuid, chara
 };
 
 NobleBindings.prototype.onDiscover = function({ peripheralUuid, advertisement, connectable, rssi }) {
-  debug('peripheral ' + deviceUuid + ' discovered');
+  debug('peripheral ' + peripheralUuid + ' discovered');
 
   if (advertisement.manufacturerData) {
     advertisement.manufacturerData = new Buffer(advertisement.manufacturerData, 'base64');
