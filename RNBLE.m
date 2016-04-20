@@ -379,6 +379,8 @@ RCT_EXPORT_METHOD(write:(NSString *)peripheralUuid serviceUuid:(NSString *)servi
     if ([dataType isEqualToString:@"uint8"]) {
         uint8_t num = [[data objectForKey:@"value"] intValue];
         writeValue = [NSData dataWithBytes:(void *)&num length:sizeof(num)];
+    } else if ([dataType isEqualToString:@"string"]) {
+        writeValue = [[data objectForKey:@"value"] dataUsingEncoding:NSUTF8StringEncoding];
     } else {
         // Throw an error?
     }
